@@ -1,8 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const BlacklistedToken = require('../models/BlacklistedToken');
 const config = require('../config');
 const logger = require('../utils/logger');
+const auth = require('../middlewares/auth');
+const validate = require('../middlewares/validate');
+const { registerSchema, loginSchema } = require('../validators/auth');
 
 const router = express.Router();
 
@@ -12,22 +16,9 @@ const generateToken = (user) => jwt.sign(
   { expiresIn: config.jwt.expiresIn },
 );
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -46,13 +37,9 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -69,6 +56,38 @@ router.post('/login', async (req, res, next) => {
     res.status(200).json({ token, user: user.toJSON() });
   } catch (error) {
     logger.error('Login error:', error);
+    next(error);
+  }
+});
+
+router.post('/logout', auth, async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const blacklisted = new BlacklistedToken({
+      token,
+      expiresAt: new Date(req.tokenPayload.exp * 1000),
+    });
+    await blacklisted.save();
+
+    res.status(204).end();
+  } catch (error) {
+    logger.error('Logout error:', error);
+    next(error);
+  }
+});
+
+router.post('/refresh', auth, async (req, res, next) => {
+  try {
+    const token = jwt.sign(
+      { id: req.user.id, role: req.user.role },
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn },
+    );
+
+    res.json({ token });
+  } catch (error) {
+    logger.error('Refresh token error:', error);
     next(error);
   }
 });

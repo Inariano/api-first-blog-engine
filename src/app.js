@@ -7,6 +7,7 @@ const config = require('./config');
 const logger = require('./utils/logger');
 const healthRouter = require('./api/health');
 const authRouter = require('./api/auth');
+const postsRouter = require('./api/posts');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(express.static('public'));
 // Routes
 app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/posts', postsRouter);
 
 // Test-only route that triggers error handler
 if (config.env === 'test') {

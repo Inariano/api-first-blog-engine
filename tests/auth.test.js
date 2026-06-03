@@ -31,7 +31,18 @@ jest.mock('../src/models/User', () => {
 
 jest.mock('jsonwebtoken', () => ({
   sign: jest.fn(() => 'mocked-jwt-token'),
+  verify: jest.fn(),
 }));
+
+const mockBlacklistedTokenSave = jest.fn().mockResolvedValue();
+jest.mock('../src/models/BlacklistedToken', () => {
+  const BlacklistedToken = jest.fn().mockImplementation((data) => ({
+    ...data,
+    save: mockBlacklistedTokenSave,
+  }));
+  BlacklistedToken.findOne = jest.fn();
+  return BlacklistedToken;
+});
 
 const app = require('../src/app');
 
@@ -223,6 +234,120 @@ describe('Auth error paths', () => {
     const response = await request(app)
       .post('/api/auth/login')
       .send({ email: 'test@example.com', password: 'password123' })
+      .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+});
+
+describe('POST /api/auth/logout', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should logout and return 204', async () => {
+    const jwt = require('jsonwebtoken');
+    const BlacklistedToken = require('../src/models/BlacklistedToken');
+    jwt.verify.mockReturnValue({
+      id: 'user-id',
+      role: 'subscriber',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+    BlacklistedToken.findOne.mockResolvedValue(null);
+
+    const response = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(204);
+
+    expect(response.body).toEqual({});
+    expect(BlacklistedToken).toHaveBeenCalledWith({
+      token: 'valid-token',
+      expiresAt: expect.any(Date),
+    });
+    expect(mockBlacklistedTokenSave).toHaveBeenCalled();
+  });
+
+  test('should return 401 when no token provided', async () => {
+    const response = await request(app)
+      .post('/api/auth/logout')
+      .expect(401);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 500 when save fails', async () => {
+    const jwt = require('jsonwebtoken');
+    const BlacklistedToken = require('../src/models/BlacklistedToken');
+    jwt.verify.mockReturnValue({
+      id: 'user-id',
+      role: 'subscriber',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+    BlacklistedToken.findOne.mockResolvedValue(null);
+    mockBlacklistedTokenSave.mockRejectedValue(new Error('Save error'));
+
+    const response = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+});
+
+describe('POST /api/auth/refresh', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should refresh token and return 200 with new token', async () => {
+    const jwt = require('jsonwebtoken');
+    const BlacklistedToken = require('../src/models/BlacklistedToken');
+    jwt.verify.mockReturnValue({
+      id: 'user-id',
+      role: 'subscriber',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+    BlacklistedToken.findOne.mockResolvedValue(null);
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(200);
+
+    expect(response.body).toHaveProperty('token', 'mocked-jwt-token');
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { id: 'user-id', role: 'subscriber' },
+      expect.any(String),
+      { expiresIn: expect.any(String) },
+    );
+  });
+
+  test('should return 401 when no token provided', async () => {
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .expect(401);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 500 when sign fails', async () => {
+    const jwt = require('jsonwebtoken');
+    const BlacklistedToken = require('../src/models/BlacklistedToken');
+    jwt.verify.mockReturnValue({
+      id: 'user-id',
+      role: 'subscriber',
+    });
+    BlacklistedToken.findOne.mockResolvedValue(null);
+    jwt.sign.mockImplementation(() => { throw new Error('Sign error'); });
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Authorization', 'Bearer valid-token')
       .expect(500);
 
     expect(response.body).toHaveProperty('error');
