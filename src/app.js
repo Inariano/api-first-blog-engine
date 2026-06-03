@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const logger = require('./utils/logger');
 const healthRouter = require('./api/health');
+const authRouter = require('./api/auth');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(express.static('public'));
 
 // Routes
 app.use('/health', healthRouter);
+app.use('/api/auth', authRouter);
 
 // Test-only route that triggers error handler
 if (config.env === 'test') {
