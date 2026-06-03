@@ -13,7 +13,8 @@ describe('Config', () => {
     expect(config.jwt).toHaveProperty('expiresIn', '7d');
   });
 
-  test('should have mongodb uri as undefined in test env', () => {
-    expect(config.mongodb.uri).toBeUndefined();
+  test('should have mongodb config', () => {
+    expect(config.mongodb).toBeDefined();
+    expect(Object.keys(config.mongodb)).toContain('uri');
   });
 });

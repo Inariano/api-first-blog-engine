@@ -31,8 +31,5 @@ jobs:
 
       - name: Run tests with coverage
         run: npm test
-
-      - name: Check coverage threshold
-        run: |
-          npm test 2>&1 | tail -20
-          echo "Coverage check passed"
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
