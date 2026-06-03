@@ -10,6 +10,7 @@ const logger = require('./utils/logger');
 const healthRouter = require('./api/health');
 const authRouter = require('./api/auth');
 const postsRouter = require('./api/posts');
+const commentsRouter = require('./api/comments');
 const webRouter = require('./web/home');
 
 const app = express();
@@ -54,6 +55,7 @@ app.use(express.static('public'));
 app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/posts', postsRouter);
+app.use('/api/posts/:postId/comments', commentsRouter);
 app.use('/web', webRouter);
 app.get('/', (req, res) => res.redirect('/web'));
 

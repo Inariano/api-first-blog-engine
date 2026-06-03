@@ -1,0 +1,31 @@
+<div id="comments-section">
+  <h2 class="text-2xl font-bold mb-6">Comments</h2>
+
+  {{#if comments.length}}
+    <div class="space-y-4 mb-8">
+      {{#each comments}}
+        <div class="bg-gray-50 rounded-lg p-4 border">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-medium text-gray-700">{{this.author.name}}</span>
+            <time class="text-sm text-gray-400" datetime="{{this.createdAt}}">{{this.createdAt}}</time>
+          </div>
+          <p class="text-gray-600">{{this.content}}</p>
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <p class="text-gray-400 mb-8">No comments yet. Be the first!</p>
+  {{/if}}
+
+  <form hx-post="/web/posts/{{postId}}/comments" hx-target="#comments-section" hx-swap="outerHTML"
+        class="bg-white border rounded-lg p-6">
+    <h3 class="text-lg font-semibold mb-4">Leave a comment</h3>
+    <textarea name="content" rows="3" required
+              class="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Write your comment..."></textarea>
+    <button type="submit"
+            class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+      Submit
+    </button>
+  </form>
+</div>
