@@ -3,6 +3,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const { engine } = require('express-handlebars');
 const config = require('./config');
@@ -12,6 +13,7 @@ const authRouter = require('./api/auth');
 const postsRouter = require('./api/posts');
 const commentsRouter = require('./api/comments');
 const webRouter = require('./web/home');
+const adminRouter = require('./web/admin');
 
 const app = express();
 
@@ -34,14 +36,19 @@ app.use(limiter);
 // Parsing
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // View engine
-app.engine('hbs', engine({
+const hbs = engine({
   extname: '.hbs',
   defaultLayout: 'main',
   layoutsDir: path.join(__dirname, 'views', 'layouts'),
   partialsDir: path.join(__dirname, 'views', 'partials'),
-}));
+  helpers: {
+    eq(a, b) { return a === b; },
+  },
+});
+app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -56,6 +63,7 @@ app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/posts/:postId/comments', commentsRouter);
+app.use('/web/admin', adminRouter);
 app.use('/web', webRouter);
 app.get('/', (req, res) => res.redirect('/web'));
 

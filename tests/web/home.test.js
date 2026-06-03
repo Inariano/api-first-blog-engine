@@ -68,7 +68,8 @@ describe('Web Routes', () => {
       Post.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValue(posts),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(posts),
       });
 
       const response = await request(app)
@@ -85,7 +86,8 @@ describe('Web Routes', () => {
       Post.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValue([]),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([]),
       });
 
       const response = await request(app)
@@ -100,7 +102,8 @@ describe('Web Routes', () => {
       Post.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockRejectedValue(new Error('DB error')),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('DB error')),
       });
 
       const response = await request(app)
@@ -149,7 +152,8 @@ describe('Web Routes', () => {
     test('should render post content partial', async () => {
       const Post = require('../../src/models/Post');
       Post.findById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue({
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue({
           _id: 'post-1',
           title: 'Full Post',
           content: 'Post body content',
@@ -172,7 +176,8 @@ describe('Web Routes', () => {
     test('should return 404 when post not found', async () => {
       const Post = require('../../src/models/Post');
       Post.findById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(null),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(null),
       });
 
       const response = await request(app)
@@ -185,7 +190,8 @@ describe('Web Routes', () => {
     test('should return 500 on database error', async () => {
       const Post = require('../../src/models/Post');
       Post.findById.mockReturnValue({
-        populate: jest.fn().mockRejectedValue(new Error('DB error')),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('DB error')),
       });
 
       const response = await request(app)
@@ -201,7 +207,8 @@ describe('Web Routes', () => {
       const Comment = require('../../src/models/Comment');
       Comment.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockResolvedValue([
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([
           {
             _id: 'c1',
             content: 'Great post!',
@@ -223,7 +230,8 @@ describe('Web Routes', () => {
       const Comment = require('../../src/models/Comment');
       Comment.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockResolvedValue([]),
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([]),
       });
 
       const response = await request(app)
@@ -237,7 +245,8 @@ describe('Web Routes', () => {
       const Comment = require('../../src/models/Comment');
       Comment.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockRejectedValue(new Error('DB error')),
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('DB error')),
       });
 
       const response = await request(app)
@@ -254,7 +263,8 @@ describe('Web Routes', () => {
       Comment.__mockSave.mockResolvedValue();
       Comment.find.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockResolvedValue([
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([
           {
             _id: 'c1',
             content: 'New comment',

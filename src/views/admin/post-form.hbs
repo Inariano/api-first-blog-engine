@@ -1,0 +1,60 @@
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8">{{#if post}}Edit Post{{else}}New Post{{/if}}</h1>
+
+  {{#if errors}}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+      <ul class="list-disc list-inside">
+        {{#each errors}}
+          <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  <form method="POST" action="/web/admin/posts{{#if post}}/{{post._id}}/edit{{/if}}"
+        class="bg-white rounded-lg shadow-md p-8 space-y-6">
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input type="text" name="title" id="title" required
+             value="{{values.title}}"
+             class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    </div>
+
+    <div>
+      <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Content (Markdown)</label>
+      <textarea name="content" id="content" rows="15" required
+                class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm">{{values.content}}</textarea>
+    </div>
+
+    <div>
+      <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+      <input type="text" name="tags" id="tags"
+             value="{{#if values.tags}}{{values.tags}}{{/if}}"
+             placeholder="javascript, nodejs, architecture"
+             class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    </div>
+
+    <div class="flex items-center gap-8">
+      <label class="flex items-center gap-2">
+        <input type="radio" name="status" value="draft"
+               {{#unless (eq values.status 'published')}}checked{{/unless}}
+               class="text-indigo-600">
+        <span class="text-sm text-gray-700">Draft</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="radio" name="status" value="published"
+               {{#if (eq values.status 'published')}}checked{{/if}}
+               class="text-indigo-600">
+        <span class="text-sm text-gray-700">Published</span>
+      </label>
+    </div>
+
+    <div class="flex items-center gap-4 pt-4 border-t">
+      <button type="submit"
+              class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-medium">
+        {{#if post}}Update Post{{else}}Create Post{{/if}}
+      </button>
+      <a href="/web/admin" class="text-gray-600 hover:text-gray-800">Cancel</a>
+    </div>
+  </form>
+</div>

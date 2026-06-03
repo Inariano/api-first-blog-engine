@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} — Admin</title>
+  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+  <aside class="w-64 bg-gray-900 text-white flex flex-col shrink-0">
+    <div class="p-4 border-b border-gray-700">
+      <a href="/web/admin" class="text-lg font-bold text-indigo-400">Blog Admin</a>
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="/web/admin"
+         class="block px-3 py-2 rounded hover:bg-gray-800 {{#if (eq currentPage 'dashboard')}}bg-gray-800{{/if}}">
+        Dashboard
+      </a>
+      <a href="/web/admin/posts/new"
+         class="block px-3 py-2 rounded hover:bg-gray-800 {{#if (eq currentPage 'new-post')}}bg-gray-800{{/if}}">
+        New Post
+      </a>
+      <a href="/web"
+         class="block px-3 py-2 rounded hover:bg-gray-800 mt-4 text-gray-400">
+        &larr; View Site
+      </a>
+      <a href="/web/admin/logout"
+         class="block px-3 py-2 rounded hover:bg-gray-800 text-red-400 mt-auto">
+        Logout
+      </a>
+    </nav>
+  </aside>
+  <main class="flex-1 overflow-auto">
+    <div class="p-8">
+      {{{body}}}
+    </div>
+  </main>
+</body>
+</html>
