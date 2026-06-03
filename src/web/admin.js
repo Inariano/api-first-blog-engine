@@ -79,7 +79,7 @@ router.get('/', async (req, res, next) => {
       drafts: posts.filter((p) => p.status === 'draft').length,
     };
 
-    res.render('admin/dashboard', { title: 'Admin Dashboard', posts, stats });
+    res.render('admin/dashboard', { layout: 'admin', title: 'Admin Dashboard', posts, stats });
   } catch (error) {
     next(error);
   }
@@ -87,6 +87,7 @@ router.get('/', async (req, res, next) => {
 
 router.get('/posts/new', (req, res) => {
   res.render('admin/post-form', {
+    layout: 'admin',
     title: 'New Post',
     post: null,
   });
@@ -110,6 +111,7 @@ router.post('/posts', async (req, res, next) => {
   } catch (error) {
     if (error.name === 'ZodError') {
       return res.render('admin/post-form', {
+        layout: 'admin',
         title: 'New Post',
         post: null,
         errors: error.errors.map((e) => e.message),
@@ -127,6 +129,7 @@ router.get('/posts/:id/edit', async (req, res, next) => {
       return res.redirect('/web/admin');
     }
     res.render('admin/post-form', {
+      layout: 'admin',
       title: 'Edit Post',
       post,
       values: post,
@@ -157,6 +160,7 @@ router.post('/posts/:id/edit', async (req, res, next) => {
     if (error.name === 'ZodError') {
       const post = await Post.findById(req.params.id).lean();
       return res.render('admin/post-form', {
+        layout: 'admin',
         title: 'Edit Post',
         post,
         values: { ...req.body },
