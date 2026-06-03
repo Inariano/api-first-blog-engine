@@ -33,7 +33,7 @@ Antes de enviar qualquer resposta com código, confirme mentalmente:
 # 🧠 Self-Updating Context (Memória do Agente)
 *INSTRUÇÃO PARA A IA: Ao final de cada funcionalidade concluída, atualize manualmente as informações abaixo e mostre-as ao usuário para manter a rastreabilidade do projeto.*
 
-- **Data da Última Atualização:** [Agente, preencha a data aqui]
-- **Última Funcionalidade Concluída:** Configuração inicial de Infraestrutura e Definição de Arquitetura (ADR Master Finalizado).
-- **Estado Atual da Arquitetura:** Projeto estruturado conceitualmente. Stack, Banco, Fluxo CI/CD e Metodologia TDD definidos e selados.
-- **Próximo Passo / Débito Técnico:** Criar estrutura inicial de pastas (`package.json`, `.env.example`, `docker-compose.yml`) e configurar o ambiente de testes base (Jest + `mongodb-memory-server`) antes de escrever a primeira rota (`/health`).
+- **Data da Última Atualização:** 2026-06-03
+- **Última Funcionalidade Concluída:** Estrutura inicial do projeto (`package.json`, Docker, Testes) e implementação da primeira rota (`/health`) via TDD.
+- **Estado Atual da Arquitetura:** Projeto inicializado com Express. Ambiente de testes Jest pronto. Infraestrutura Docker definida.
+- **Próximo Passo / Débito Técnico:** Configurar o setup/teardown do banco de dados para testes (`mongodb-memory-server`) e implementar a primeira funcionalidade de persistência (Modelo de Usuário) via ADR-003.
