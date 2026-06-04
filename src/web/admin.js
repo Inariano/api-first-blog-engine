@@ -62,6 +62,7 @@ router.post('/login', async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    req.session.success = 'Logged in successfully';
     res.redirect('/web/admin');
   } catch (error) {
     next(error);
@@ -69,6 +70,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 router.get('/logout', (req, res) => {
+  req.session?.destroy?.();
   res.clearCookie('token');
   res.redirect('/web/admin/login');
 });
@@ -122,6 +124,7 @@ router.post('/posts', async (req, res, next) => {
       author: req.user.id,
     });
     await post.save();
+    req.session.success = 'Post created successfully';
     res.redirect('/web/admin');
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -143,6 +146,7 @@ router.get('/posts/:id/edit', async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id).lean();
     if (!post) {
+      req.session.error = 'Post not found';
       return res.redirect('/web/admin');
     }
     const categories = await Category.find().sort({ name: 1 }).lean();
@@ -172,8 +176,10 @@ router.post('/posts/:id/edit', async (req, res, next) => {
       runValidators: true,
     });
     if (!post) {
+      req.session.error = 'Post not found';
       return res.redirect('/web/admin');
     }
+    req.session.success = 'Post updated successfully';
     res.redirect('/web/admin');
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -196,6 +202,7 @@ router.post('/posts/:id/delete', async (req, res, next) => {
   try {
     await Comment.deleteMany({ post: req.params.id });
     await Post.findByIdAndDelete(req.params.id);
+    req.session.success = 'Post deleted successfully';
     res.redirect('/web/admin');
   } catch (error) {
     next(error);
@@ -206,10 +213,13 @@ router.post('/posts/:id/toggle-status', async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
+      req.session.error = 'Post not found';
       return res.redirect('/web/admin');
     }
-    post.status = post.status === 'published' ? 'draft' : 'published';
+    const newStatus = post.status === 'published' ? 'draft' : 'published';
+    post.status = newStatus;
     await post.save();
+    req.session.success = `Post ${newStatus === 'published' ? 'published' : 'unpublished'} successfully`;
     res.redirect('/web/admin');
   } catch (error) {
     next(error);
@@ -240,6 +250,7 @@ router.post('/categories', async (req, res, next) => {
     const parsed = createCategorySchema.parse(req.body);
     const category = new Category(parsed);
     await category.save();
+    req.session.success = 'Category created successfully';
     res.redirect('/web/admin/categories');
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -268,6 +279,7 @@ router.get('/categories/:id/edit', async (req, res, next) => {
   try {
     const category = await Category.findById(req.params.id).lean();
     if (!category) {
+      req.session.error = 'Category not found';
       return res.redirect('/web/admin/categories');
     }
     res.render('admin/category-form', {
@@ -289,8 +301,10 @@ router.post('/categories/:id/edit', async (req, res, next) => {
       runValidators: true,
     });
     if (!category) {
+      req.session.error = 'Category not found';
       return res.redirect('/web/admin/categories');
     }
+    req.session.success = 'Category updated successfully';
     res.redirect('/web/admin/categories');
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -320,6 +334,7 @@ router.post('/categories/:id/edit', async (req, res, next) => {
 router.post('/categories/:id/delete', async (req, res, next) => {
   try {
     await Category.findByIdAndDelete(req.params.id);
+    req.session.success = 'Category deleted successfully';
     res.redirect('/web/admin/categories');
   } catch (error) {
     next(error);
@@ -346,8 +361,10 @@ router.post('/users/:id/block', async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    user.status = user.status === 'blocked' ? 'active' : 'blocked';
+    const newStatus = user.status === 'blocked' ? 'active' : 'blocked';
+    user.status = newStatus;
     await user.save();
+    req.session.success = `User ${newStatus === 'blocked' ? 'blocked' : 'unblocked'} successfully`;
     res.redirect('/web/admin/users');
   } catch (error) {
     next(error);
@@ -361,6 +378,7 @@ router.post('/users/:id/make-author', async (req, res, next) => {
 
     user.role = 'writer';
     await user.save();
+    req.session.success = 'User promoted to author successfully';
     res.redirect('/web/admin/users');
   } catch (error) {
     next(error);
@@ -371,6 +389,7 @@ router.post('/users/:id/delete', async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
+    req.session.success = 'User deleted successfully';
     res.redirect('/web/admin/users');
   } catch (error) {
     next(error);

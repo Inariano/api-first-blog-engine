@@ -72,6 +72,8 @@ router.post('/login', async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    req.session.success = 'Logged in successfully';
+
     if (user.role === 'admin') {
       return res.redirect('/web/admin');
     }
@@ -137,6 +139,7 @@ router.post('/register', async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    req.session.success = 'Account created successfully';
     res.redirect('/web');
   } catch (error) {
     next(error);
@@ -256,6 +259,7 @@ router.post('/posts/:id/comments', auth, async (req, res, next) => {
 });
 
 router.get('/logout', (req, res) => {
+  req.session?.destroy?.();
   res.clearCookie('token');
   res.redirect('/web');
 });

@@ -623,6 +623,17 @@ describe('Web Routes', () => {
     });
   });
 
+  describe('GET /web/logout', () => {
+    test('should clear cookie and redirect to home', async () => {
+      const response = await request(app)
+        .get('/web/logout')
+        .expect(302);
+
+      expect(response.headers.location).toBe('/web');
+      expect(response.headers['set-cookie']).toBeDefined();
+    });
+  });
+
   describe('POST /web/posts/:id/comments', () => {
     test('should create comment and render updated comments', async () => {
       const Comment = require('../../src/models/Comment');

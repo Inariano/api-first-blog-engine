@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const rateLimit = require('express-rate-limit');
 const { engine } = require('express-handlebars');
 const config = require('./config');
@@ -13,8 +15,10 @@ const authRouter = require('./api/auth');
 const postsRouter = require('./api/posts');
 const commentsRouter = require('./api/comments');
 const categoriesRouter = require('./api/categories');
+const Category = require('./models/Category');
 const webRouter = require('./web/home');
 const adminRouter = require('./web/admin');
+const flash = require('./middlewares/flash');
 
 const app = express();
 
@@ -38,6 +42,29 @@ app.use(limiter);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Sessions
+const sessionOptions = {
+  secret: config.session.secret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: config.env === 'production',
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+  },
+};
+
+if (config.mongodb.uri) {
+  sessionOptions.store = MongoStore.create({
+    mongoUrl: config.mongodb.uri,
+    ttl: 24 * 60 * 60,
+  });
+}
+
+app.use(session(sessionOptions));
+app.use(flash);
 
 // View engine
 const hbs = engine({
@@ -72,6 +99,17 @@ app.use((req, res, next) => {
     res.locals.user = { id: decoded.id, role: decoded.role, name: decoded.name };
   } catch (err) {
     // Invalid token - ignore
+  }
+  next();
+});
+
+// Load categories for all web routes (public site header)
+app.use('/web', async (req, res, next) => {
+  try {
+    const categories = await Category.find().sort({ name: 1 }).limit(5).lean();
+    res.locals.categories = categories;
+  } catch {
+    res.locals.categories = [];
   }
   next();
 });
