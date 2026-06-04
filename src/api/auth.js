@@ -11,7 +11,7 @@ const { registerSchema, loginSchema } = require('../validators/auth');
 const router = express.Router();
 
 const generateToken = (user) => jwt.sign(
-  { id: user._id, role: user.role },
+  { id: user._id, role: user.role, name: user.name },
   config.jwt.secret,
   { expiresIn: config.jwt.expiresIn },
 );

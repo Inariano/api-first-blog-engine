@@ -48,6 +48,7 @@ const hbs = engine({
   helpers: {
     eq(a, b) { return a === b; },
     ne(a, b) { return a !== b; },
+    toString(val) { return String(val); },
   },
 });
 app.engine('hbs', hbs);
@@ -59,6 +60,21 @@ app.use(morgan('combined', { stream: { write: (msg) => logger.http(msg.trim()) }
 
 // Static files
 app.use(express.static('public'));
+
+// Parse user from token for all routes (optional - doesn't require auth)
+app.use((req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) return next();
+
+  try {
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, config.jwt.secret);
+    res.locals.user = { id: decoded.id, role: decoded.role, name: decoded.name };
+  } catch (err) {
+    // Invalid token - ignore
+  }
+  next();
+});
 
 // Routes
 app.use('/health', healthRouter);

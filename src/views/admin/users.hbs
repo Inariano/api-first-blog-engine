@@ -30,24 +30,28 @@
             </td>
             <td class="px-6 py-4 text-sm text-gray-500">{{this.createdAt}}</td>
             <td class="px-6 py-4 text-right space-x-2">
-              {{#if (eq this.status 'blocked')}}
-                <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
-                  <button class="text-green-600 hover:text-green-800 text-sm">Unblock</button>
+              {{#if (ne (toString this._id) (toString ../currentUserId))}}
+                {{#if (eq this.status 'blocked')}}
+                  <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
+                    <button class="text-green-600 hover:text-green-800 text-sm">Unblock</button>
+                  </form>
+                {{else}}
+                  <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
+                    <button class="text-red-600 hover:text-red-800 text-sm">Block</button>
+                  </form>
+                {{/if}}
+                {{#if (ne this.role 'writer')}}
+                  <form method="POST" action="/web/admin/users/{{this._id}}/make-author" class="inline">
+                    <button class="text-indigo-600 hover:text-indigo-800 text-sm">Make Author</button>
+                  </form>
+                {{/if}}
+                <form method="POST" action="/web/admin/users/{{this._id}}/delete" class="inline"
+                      onsubmit="return confirm('Delete this user? This cannot be undone.')">
+                  <button class="text-red-600 hover:text-red-800 text-sm">Delete</button>
                 </form>
               {{else}}
-                <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
-                  <button class="text-red-600 hover:text-red-800 text-sm">Block</button>
-                </form>
+                <span class="text-gray-400 text-xs italic">you</span>
               {{/if}}
-              {{#if (ne this.role 'writer')}}
-                <form method="POST" action="/web/admin/users/{{this._id}}/make-author" class="inline">
-                  <button class="text-indigo-600 hover:text-indigo-800 text-sm">Make Author</button>
-                </form>
-              {{/if}}
-              <form method="POST" action="/web/admin/users/{{this._id}}/delete" class="inline"
-                    onsubmit="return confirm('Delete this user? This cannot be undone.')">
-                <button class="text-red-600 hover:text-red-800 text-sm">Delete</button>
-              </form>
             </td>
           </tr>
         {{/each}}

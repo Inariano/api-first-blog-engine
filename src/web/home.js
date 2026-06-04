@@ -60,7 +60,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, name: user.name },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn },
     );
@@ -125,7 +125,7 @@ router.post('/register', async (req, res, next) => {
     await user.save();
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, name: user.name },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn },
     );
@@ -253,6 +253,11 @@ router.post('/posts/:id/comments', auth, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+router.get('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.redirect('/web');
 });
 
 module.exports = router;

@@ -11,14 +11,28 @@
           </a>
         {{/each}}
       {{/if}}
-      <a href="/web/register"
-         class="text-gray-600 hover:text-indigo-600 text-sm font-medium">
-        Sign Up
-      </a>
-      <a href="/web/login"
-         class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
-        Login
-      </a>
+      {{#if user}}
+        <span class="text-gray-700 text-sm font-medium">{{user.name}}</span>
+        {{#if (eq user.role 'admin')}}
+          <a href="/web/admin"
+             class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition">
+            Admin
+          </a>
+        {{/if}}
+        <a href="/web/logout"
+           class="text-gray-600 hover:text-indigo-600 text-sm font-medium">
+          Logout
+        </a>
+      {{else}}
+        <a href="/web/register"
+           class="text-gray-600 hover:text-indigo-600 text-sm font-medium">
+          Sign Up
+        </a>
+        <a href="/web/login"
+           class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
+          Login
+        </a>
+      {{/if}}
     </nav>
   </div>
 </header>

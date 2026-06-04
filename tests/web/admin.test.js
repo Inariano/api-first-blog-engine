@@ -846,12 +846,12 @@ const User = require('../../src/models/User');
   });
 
   describe('GET /web/admin/users', () => {
-    test('should render users list', async () => {
+    test('should render users list and hide actions for current admin', async () => {
       const User = require('../../src/models/User');
       User.find.mockReturnValue({
         sort: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue([
-          { _id: 'u1', name: 'Alice', email: 'alice@test.com', role: 'admin', createdAt: '2026-01-01' },
+          { _id: 'admin-id', name: 'You', email: 'you@test.com', role: 'admin', createdAt: '2026-01-01' },
           { _id: 'u2', name: 'Bob', email: 'bob@test.com', role: 'subscriber', createdAt: '2026-02-01' },
         ]),
       });
@@ -860,9 +860,12 @@ const User = require('../../src/models/User');
         .get('/web/admin/users')
         .expect(200);
 
-      expect(response.text).toContain('Users');
-      expect(response.text).toContain('Alice');
-      expect(response.text).toContain('Bob');
+      const youRow = response.text.split('Bob')[0];
+      expect(youRow).toContain('You</td>');
+      expect(youRow).toMatch(/you/i);
+      expect(youRow).not.toContain('action="/web/admin/users/admin-id/block"');
+      expect(youRow).not.toContain('action="/web/admin/users/admin-id/make-author"');
+      expect(youRow).not.toContain('action="/web/admin/users/admin-id/delete"');
     });
 
     test('should render empty users state', async () => {

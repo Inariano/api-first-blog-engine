@@ -50,7 +50,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, name: user.name },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn },
     );
@@ -334,6 +334,7 @@ router.get('/users', async (req, res, next) => {
       title: 'Users',
       currentPage: 'users',
       users,
+      currentUserId: req.user.id,
     });
   } catch (error) {
     next(error);
