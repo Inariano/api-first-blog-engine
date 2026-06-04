@@ -46,6 +46,10 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    if (user.status === 'blocked') {
+      return res.status(403).json({ error: 'Account blocked' });
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });

@@ -4,9 +4,11 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
+const Category = require('../models/Category');
 const config = require('../config');
 const webAuth = require('../middlewares/webAuth');
 const { createPostSchema, updatePostSchema } = require('../validators/post');
+const { createCategorySchema, updateCategorySchema } = require('../validators/category');
 
 const router = express.Router();
 
@@ -29,6 +31,13 @@ router.post('/login', async (req, res, next) => {
       return res.render('admin/login', {
         title: 'Admin Login',
         error: 'Invalid credentials',
+      });
+    }
+
+    if (user.status === 'blocked') {
+      return res.render('admin/login', {
+        title: 'Admin Login',
+        error: 'Your account has been blocked',
       });
     }
 
@@ -79,18 +88,24 @@ router.get('/', async (req, res, next) => {
       drafts: posts.filter((p) => p.status === 'draft').length,
     };
 
-    res.render('admin/dashboard', { layout: 'admin', title: 'Admin Dashboard', posts, stats });
+    res.render('admin/dashboard', { layout: 'admin', title: 'Admin Dashboard', posts, stats, user: req.user });
   } catch (error) {
     next(error);
   }
 });
 
-router.get('/posts/new', (req, res) => {
-  res.render('admin/post-form', {
-    layout: 'admin',
-    title: 'New Post',
-    post: null,
-  });
+router.get('/posts/new', async (req, res, next) => {
+  try {
+    const categories = await Category.find().sort({ name: 1 }).lean();
+    res.render('admin/post-form', {
+      layout: 'admin',
+      title: 'New Post',
+      post: null,
+      categories,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post('/posts', async (req, res, next) => {
@@ -110,10 +125,12 @@ router.post('/posts', async (req, res, next) => {
     res.redirect('/web/admin');
   } catch (error) {
     if (error.name === 'ZodError') {
+      const categories = await Category.find().sort({ name: 1 }).lean();
       return res.render('admin/post-form', {
         layout: 'admin',
         title: 'New Post',
         post: null,
+        categories,
         errors: error.errors.map((e) => e.message),
         values: req.body,
       });
@@ -128,10 +145,12 @@ router.get('/posts/:id/edit', async (req, res, next) => {
     if (!post) {
       return res.redirect('/web/admin');
     }
+    const categories = await Category.find().sort({ name: 1 }).lean();
     res.render('admin/post-form', {
       layout: 'admin',
       title: 'Edit Post',
       post,
+      categories,
       values: post,
     });
   } catch (error) {
@@ -159,10 +178,12 @@ router.post('/posts/:id/edit', async (req, res, next) => {
   } catch (error) {
     if (error.name === 'ZodError') {
       const post = await Post.findById(req.params.id).lean();
+      const categories = await Category.find().sort({ name: 1 }).lean();
       return res.render('admin/post-form', {
         layout: 'admin',
         title: 'Edit Post',
         post,
+        categories,
         values: { ...req.body },
         errors: error.errors.map((e) => e.message),
       });
@@ -190,6 +211,166 @@ router.post('/posts/:id/toggle-status', async (req, res, next) => {
     post.status = post.status === 'published' ? 'draft' : 'published';
     await post.save();
     res.redirect('/web/admin');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Category CRUD
+
+router.get('/categories', async (req, res, next) => {
+  try {
+    const categories = await Category.find().sort({ name: 1 }).lean();
+    res.render('admin/categories', { layout: 'admin', title: 'Categories', categories });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/categories/new', (req, res) => {
+  res.render('admin/category-form', {
+    layout: 'admin',
+    title: 'New Category',
+    category: null,
+  });
+});
+
+router.post('/categories', async (req, res, next) => {
+  try {
+    const parsed = createCategorySchema.parse(req.body);
+    const category = new Category(parsed);
+    await category.save();
+    res.redirect('/web/admin/categories');
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      return res.render('admin/category-form', {
+        layout: 'admin',
+        title: 'New Category',
+        category: null,
+        errors: error.errors.map((e) => e.message),
+        values: req.body,
+      });
+    }
+    if (error.code === 11000) {
+      return res.render('admin/category-form', {
+        layout: 'admin',
+        title: 'New Category',
+        category: null,
+        errors: ['Category already exists'],
+        values: req.body,
+      });
+    }
+    next(error);
+  }
+});
+
+router.get('/categories/:id/edit', async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id).lean();
+    if (!category) {
+      return res.redirect('/web/admin/categories');
+    }
+    res.render('admin/category-form', {
+      layout: 'admin',
+      title: 'Edit Category',
+      category,
+      values: category,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/categories/:id/edit', async (req, res, next) => {
+  try {
+    const parsed = updateCategorySchema.parse(req.body);
+    const category = await Category.findByIdAndUpdate(req.params.id, parsed, {
+      new: true,
+      runValidators: true,
+    });
+    if (!category) {
+      return res.redirect('/web/admin/categories');
+    }
+    res.redirect('/web/admin/categories');
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      const category = await Category.findById(req.params.id).lean();
+      return res.render('admin/category-form', {
+        layout: 'admin',
+        title: 'Edit Category',
+        category,
+        values: { ...req.body },
+        errors: error.errors.map((e) => e.message),
+      });
+    }
+    if (error.code === 11000) {
+      const category = await Category.findById(req.params.id).lean();
+      return res.render('admin/category-form', {
+        layout: 'admin',
+        title: 'Edit Category',
+        category,
+        values: { ...req.body },
+        errors: ['Category already exists'],
+      });
+    }
+    next(error);
+  }
+});
+
+router.post('/categories/:id/delete', async (req, res, next) => {
+  try {
+    await Category.findByIdAndDelete(req.params.id);
+    res.redirect('/web/admin/categories');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/users', async (req, res, next) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 }).lean();
+    res.render('admin/users', {
+      layout: 'admin',
+      title: 'Users',
+      currentPage: 'users',
+      users,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/users/:id/block', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.status = user.status === 'blocked' ? 'active' : 'blocked';
+    await user.save();
+    res.redirect('/web/admin/users');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/users/:id/make-author', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.role = 'writer';
+    await user.save();
+    res.redirect('/web/admin/users');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/users/:id/delete', async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.redirect('/web/admin/users');
   } catch (error) {
     next(error);
   }

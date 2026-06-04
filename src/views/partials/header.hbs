@@ -3,8 +3,20 @@
     <a href="/" class="text-xl font-bold text-indigo-600">Blog Engine</a>
     <nav class="space-x-4 flex items-center">
       <a href="/" class="text-gray-600 hover:text-indigo-600">Home</a>
-      <a href="/web/admin/login"
-         class="ml-4 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
+      {{#if categories}}
+        {{#each categories}}
+          <a href="/web/categories/{{this.slug}}"
+             class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">
+            {{this.name}}
+          </a>
+        {{/each}}
+      {{/if}}
+      <a href="/web/register"
+         class="text-gray-600 hover:text-indigo-600 text-sm font-medium">
+        Sign Up
+      </a>
+      <a href="/web/login"
+         class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
         Login
       </a>
     </nav>

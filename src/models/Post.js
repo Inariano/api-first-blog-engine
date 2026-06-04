@@ -21,6 +21,11 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
     required: [true, 'Author is required'],
   },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: [true, 'Category is required'],
+  },
   tags: [{
     type: String,
     trim: true,

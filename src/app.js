@@ -12,6 +12,7 @@ const healthRouter = require('./api/health');
 const authRouter = require('./api/auth');
 const postsRouter = require('./api/posts');
 const commentsRouter = require('./api/comments');
+const categoriesRouter = require('./api/categories');
 const webRouter = require('./web/home');
 const adminRouter = require('./web/admin');
 
@@ -46,6 +47,7 @@ const hbs = engine({
   partialsDir: path.join(__dirname, 'views', 'partials'),
   helpers: {
     eq(a, b) { return a === b; },
+    ne(a, b) { return a !== b; },
   },
 });
 app.engine('hbs', hbs);
@@ -63,6 +65,7 @@ app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/posts/:postId/comments', commentsRouter);
+app.use('/api/categories', categoriesRouter);
 app.use('/web/admin', adminRouter);
 app.use('/web', webRouter);
 app.get('/', (req, res) => res.redirect('/web'));

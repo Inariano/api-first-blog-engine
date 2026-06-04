@@ -1,0 +1,62 @@
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8">Users</h1>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
+          <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Email</th>
+          <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Role</th>
+          <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+          <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Joined</th>
+          <th class="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {{#each users}}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">{{this.name}}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{this.email}}</td>
+            <td class="px-6 py-4">
+              <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full capitalize">{{this.role}}</span>
+            </td>
+            <td class="px-6 py-4">
+              {{#if (eq this.status 'blocked')}}
+                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Blocked</span>
+              {{else}}
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
+              {{/if}}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{this.createdAt}}</td>
+            <td class="px-6 py-4 text-right space-x-2">
+              {{#if (eq this.status 'blocked')}}
+                <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
+                  <button class="text-green-600 hover:text-green-800 text-sm">Unblock</button>
+                </form>
+              {{else}}
+                <form method="POST" action="/web/admin/users/{{this._id}}/block" class="inline">
+                  <button class="text-red-600 hover:text-red-800 text-sm">Block</button>
+                </form>
+              {{/if}}
+              {{#if (ne this.role 'writer')}}
+                <form method="POST" action="/web/admin/users/{{this._id}}/make-author" class="inline">
+                  <button class="text-indigo-600 hover:text-indigo-800 text-sm">Make Author</button>
+                </form>
+              {{/if}}
+              <form method="POST" action="/web/admin/users/{{this._id}}/delete" class="inline"
+                    onsubmit="return confirm('Delete this user? This cannot be undone.')">
+                <button class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {{/each}}
+        {{#unless users.length}}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-400">No users found.</td>
+          </tr>
+        {{/unless}}
+      </tbody>
+    </table>
+  </div>
+</div>

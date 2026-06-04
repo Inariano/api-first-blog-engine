@@ -20,11 +20,22 @@ describe('Post Model', () => {
       expect(error.errors.author).toBeDefined();
     });
 
+    test('should require category', () => {
+      const post = new Post({
+        title: 'Test Post',
+        content: 'Some content',
+        author: '507f1f77bcf86cd799439011',
+      });
+      const error = post.validateSync();
+      expect(error.errors.category).toBeDefined();
+    });
+
     test('should accept valid post data', () => {
       const post = new Post({
         title: 'Test Post',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        category: '507f1f77bcf86cd799439011',
       });
       const error = post.validateSync();
       expect(error).toBeUndefined();
@@ -35,6 +46,7 @@ describe('Post Model', () => {
         title: 'Test Post',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        category: '507f1f77bcf86cd799439011',
       });
       expect(post.status).toBe('draft');
     });
@@ -44,6 +56,7 @@ describe('Post Model', () => {
         title: 'Test Post',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        category: '507f1f77bcf86cd799439011',
         status: 'archived',
       });
       const error = post.validateSync();
@@ -52,11 +65,14 @@ describe('Post Model', () => {
   });
 
   describe('Slug generation', () => {
+    const base = { category: '507f1f77bcf86cd799439011' };
+
     test('should auto-generate slug from title before validate', async () => {
       const post = new Post({
         title: 'My First Blog Post',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        ...base,
       });
       await post.validate();
       expect(post.slug).toBe('my-first-blog-post');
@@ -67,6 +83,7 @@ describe('Post Model', () => {
         title: 'Hello! How are you? #2',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        ...base,
       });
       await post.validate();
       expect(post.slug).toBe('hello-how-are-you-2');
@@ -78,6 +95,7 @@ describe('Post Model', () => {
         slug: 'custom-slug',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        ...base,
       });
       await post.validate();
       expect(post.slug).toBe('custom-slug');
@@ -90,6 +108,7 @@ describe('Post Model', () => {
         title: 'Test Post',
         content: 'Some content',
         author: '507f1f77bcf86cd799439011',
+        category: '507f1f77bcf86cd799439011',
       });
       post._id = 'mock-id';
 

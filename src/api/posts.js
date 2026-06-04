@@ -12,6 +12,7 @@ router.get('/', async (req, res, next) => {
     const { page = 1, limit = 10 } = req.query;
     const posts = await Post.find({ status: 'published' })
       .populate('author', 'name email')
+      .populate('category', 'name slug')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
@@ -23,11 +24,12 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', auth, validate(createPostSchema), async (req, res, next) => {
   try {
-    const { title, content, tags, status } = req.body;
+    const { title, content, category, tags, status } = req.body;
 
     const post = new Post({
       title,
       content,
+      category,
       tags,
       status,
       author: req.user.id,
@@ -43,7 +45,9 @@ router.post('/', auth, validate(createPostSchema), async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id).populate('author', 'name email');
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'name email')
+      .populate('category', 'name slug');
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -60,9 +64,10 @@ router.put('/:id', auth, validate(updatePostSchema), async (req, res, next) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    const { title, content, tags, status } = req.body;
+    const { title, content, category, tags, status } = req.body;
     if (title !== undefined) post.title = title;
     if (content !== undefined) post.content = content;
+    if (category !== undefined) post.category = category;
     if (tags !== undefined) post.tags = tags;
     if (status !== undefined) post.status = status;
 

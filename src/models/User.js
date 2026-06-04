@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'writer', 'subscriber'],
     default: 'subscriber',
   },
+  status: {
+    type: String,
+    enum: ['active', 'blocked'],
+    default: 'active',
+  },
 }, {
   timestamps: true,
   toJSON: {

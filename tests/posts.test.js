@@ -9,6 +9,7 @@ jest.mock('../src/models/Post', () => {
     title: data && data.title,
     slug: (data && data.slug) || (data && data.title ? data.title.toLowerCase().replace(/\s+/g, '-') : undefined),
     content: data && data.content,
+    category: data && data.category,
     author: (data && data.author) || 'test-user-id',
     tags: (data && data.tags) || [],
     status: (data && data.status) || 'draft',
@@ -109,6 +110,7 @@ describe('POST /api/posts', () => {
       _id: 'generated-post-id',
       title: 'New Post',
       content: 'Post content',
+      category: 'category-id',
       author: 'test-user-id',
       tags: [],
       status: 'draft',
@@ -117,7 +119,7 @@ describe('POST /api/posts', () => {
     const response = await request(app)
       .post('/api/posts')
       .set('Authorization', 'Bearer valid-token')
-      .send({ title: 'New Post', content: 'Post content' })
+      .send({ title: 'New Post', content: 'Post content', category: 'category-id' })
       .expect(201);
 
     expect(response.body).toHaveProperty('_id');
@@ -128,7 +130,7 @@ describe('POST /api/posts', () => {
     const response = await request(app)
       .post('/api/posts')
       .set('Authorization', 'Bearer valid-token')
-      .send({ content: 'Post content' })
+      .send({ content: 'Post content', category: 'category-id' })
       .expect(400);
 
     expect(response.body).toHaveProperty('error');
@@ -138,7 +140,17 @@ describe('POST /api/posts', () => {
     const response = await request(app)
       .post('/api/posts')
       .set('Authorization', 'Bearer valid-token')
-      .send({ title: 'New Post' })
+      .send({ title: 'New Post', category: 'category-id' })
+      .expect(400);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 400 when category is missing', async () => {
+    const response = await request(app)
+      .post('/api/posts')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ title: 'New Post', content: 'Post content' })
       .expect(400);
 
     expect(response.body).toHaveProperty('error');
@@ -151,7 +163,7 @@ describe('POST /api/posts', () => {
     const response = await request(app)
       .post('/api/posts')
       .set('Authorization', 'Bearer valid-token')
-      .send({ title: 'New Post', content: 'Post content' })
+      .send({ title: 'New Post', content: 'Post content', category: 'category-id' })
       .expect(500);
 
     expect(response.body).toHaveProperty('error');
@@ -166,9 +178,11 @@ describe('GET /api/posts/:id', () => {
   test('should return a single post', async () => {
     const Post = mockPost();
     const post = { _id: 'post-id', title: 'My Post', toJSON: () => ({ _id: 'post-id', title: 'My Post' }) };
-    Post.findById.mockReturnValue({
-      populate: jest.fn().mockResolvedValue(post),
-    });
+    const mockQuery = {
+      populate: jest.fn().mockReturnThis(),
+      then: (resolve) => resolve(post),
+    };
+    Post.findById.mockReturnValue(mockQuery);
 
     const response = await request(app)
       .get('/api/posts/post-id')
@@ -179,9 +193,11 @@ describe('GET /api/posts/:id', () => {
 
   test('should return 404 when post not found', async () => {
     const Post = mockPost();
-    Post.findById.mockReturnValue({
-      populate: jest.fn().mockResolvedValue(null),
-    });
+    const mockQuery = {
+      populate: jest.fn().mockReturnThis(),
+      then: (resolve) => resolve(null),
+    };
+    Post.findById.mockReturnValue(mockQuery);
 
     const response = await request(app)
       .get('/api/posts/nonexistent-id')
@@ -192,9 +208,11 @@ describe('GET /api/posts/:id', () => {
 
   test('should return 500 on error', async () => {
     const Post = mockPost();
-    Post.findById.mockReturnValue({
-      populate: jest.fn().mockRejectedValue(new Error('Database error')),
-    });
+    const mockQuery = {
+      populate: jest.fn().mockReturnThis(),
+      then: (_resolve, reject) => reject(new Error('Database error')),
+    };
+    Post.findById.mockReturnValue(mockQuery);
 
     const response = await request(app)
       .get('/api/posts/post-id')
@@ -216,12 +234,14 @@ describe('PUT /api/posts/:id', () => {
       _id: 'post-id',
       title: 'Updated Title',
       content: 'Updated content',
+      category: 'cat-id',
     });
 
     Post.findOne.mockResolvedValue({
       _id: 'post-id',
       title: 'Original',
       content: 'Original content',
+      category: 'cat-id',
       tags: [],
       status: 'draft',
       save: Post.__mockSave,
@@ -265,6 +285,7 @@ describe('PUT /api/posts/:id', () => {
       _id: 'post-id',
       title: 'Original',
       content: 'Original content',
+      category: 'cat-id',
       tags: [],
       status: 'draft',
       save: Post.__mockSave,
@@ -275,6 +296,34 @@ describe('PUT /api/posts/:id', () => {
       .put('/api/posts/post-id')
       .set('Authorization', 'Bearer valid-token')
       .send({ status: 'published' })
+      .expect(200);
+  });
+
+  test('should update category when provided', async () => {
+    const Post = mockPost();
+    Post.__mockSave.mockResolvedValue();
+    Post.__mockToJSON.mockReturnValue({
+      _id: 'post-id',
+      title: 'Original',
+      content: 'Content',
+      category: 'new-cat-id',
+    });
+
+    Post.findOne.mockResolvedValue({
+      _id: 'post-id',
+      title: 'Original',
+      content: 'Content',
+      category: 'old-cat-id',
+      tags: [],
+      status: 'draft',
+      save: Post.__mockSave,
+      toJSON: Post.__mockToJSON,
+    });
+
+    await request(app)
+      .put('/api/posts/post-id')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ category: 'new-cat-id' })
       .expect(200);
   });
 
@@ -291,6 +340,7 @@ describe('PUT /api/posts/:id', () => {
       _id: 'post-id',
       title: 'Original',
       content: 'Content',
+      category: 'cat-id',
       tags: [],
       status: 'draft',
       save: Post.__mockSave,
@@ -310,6 +360,7 @@ describe('PUT /api/posts/:id', () => {
       _id: 'post-id',
       title: 'Original',
       content: 'Original content',
+      category: 'cat-id',
       tags: [],
       status: 'draft',
       save: jest.fn().mockRejectedValue(new Error('Save error')),

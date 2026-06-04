@@ -1,0 +1,30 @@
+<section class="max-w-4xl mx-auto">
+  <div class="flex items-center gap-3 mb-8">
+    <a href="/web" class="text-indigo-600 hover:text-indigo-800">&larr; All posts</a>
+    <span class="text-gray-300">|</span>
+    <h1 class="text-3xl font-bold">{{category.name}}</h1>
+  </div>
+
+  <div id="posts-list" class="space-y-6">
+    {{#if posts.length}}
+      {{#each posts}}
+        <article class="bg-white rounded-lg shadow-sm border p-6">
+          <h2 class="text-2xl font-semibold mb-2">
+            <a href="/web/posts/{{this._id}}" class="text-indigo-600 hover:text-indigo-800">
+              {{this.title}}
+            </a>
+          </h2>
+          <p class="text-gray-600 mb-4">{{this.content}}</p>
+          <div class="flex items-center justify-between text-sm text-gray-400">
+            <span>By {{this.author.name}}</span>
+            <time datetime="{{this.createdAt}}">{{this.createdAt}}</time>
+          </div>
+        </article>
+      {{/each}}
+    {{else}}
+      <div class="text-center py-12 text-gray-400">
+        <p class="text-lg">No posts in this category yet.</p>
+      </div>
+    {{/if}}
+  </div>
+</section>

@@ -1,10 +1,22 @@
 <div class="max-w-6xl mx-auto">
   <div class="flex items-center justify-between mb-8">
     <h1 class="text-3xl font-bold">Dashboard</h1>
-    <a href="/web/admin/posts/new"
-       class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-      + New Post
-    </a>
+     <div class="flex gap-3">
+       {{#if (eq user.role 'admin')}}
+         <a href="/web/admin/users"
+            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+           User List
+         </a>
+       {{/if}}
+       <a href="/web/admin/categories/new"
+          class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
+         + New Category
+       </a>
+       <a href="/web/admin/posts/new"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+         + New Post
+       </a>
+     </div>
   </div>
 
   <div class="grid grid-cols-3 gap-6 mb-8">

@@ -47,6 +47,11 @@ describe('User Model', () => {
       const user = new User({ name: 'Test', email: 'test@example.com', password: 'password123' });
       expect(user.role).toBe('subscriber');
     });
+
+    test('should default status to active', () => {
+      const user = new User({ name: 'Test', email: 'test@example.com', password: 'password123' });
+      expect(user.status).toBe('active');
+    });
   });
 
   describe('toJSON transform', () => {

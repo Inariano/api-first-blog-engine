@@ -164,6 +164,21 @@ describe('POST /api/auth/login', () => {
     expect(response.body).toHaveProperty('error');
   });
 
+  test('should return 403 when user is blocked', async () => {
+    const User = require('../src/models/User');
+    User.findOne.mockResolvedValue({
+      status: 'blocked',
+      comparePassword: jest.fn(),
+    });
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'blocked@test.com', password: 'any' })
+      .expect(403);
+
+    expect(response.body).toHaveProperty('error', 'Account blocked');
+  });
+
   test('should return 400 when email is missing', async () => {
     const response = await request(app)
       .post('/api/auth/login')
