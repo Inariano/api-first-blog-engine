@@ -7,8 +7,11 @@ const Category = require('../models/Category');
 const User = require('../models/User');
 const config = require('../config');
 const auth = require('../middlewares/auth');
+const { csrfValidate } = require('../middlewares/csrf');
 
 const router = express.Router();
+
+router.use(csrfValidate);
 
 router.get('/', async (req, res, next) => {
   try {

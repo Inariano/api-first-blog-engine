@@ -6,6 +6,14 @@ jest.mock('../../src/middlewares/webAuth', () => jest.fn((req, res, next) => {
   next();
 }));
 
+jest.mock('../../src/middlewares/csrf', () => ({
+  csrfProtection: (req, res, next) => {
+    res.locals.csrfToken = 'test-csrf-token';
+    next();
+  },
+  csrfValidate: (req, res, next) => next(),
+}));
+
 const mockUserSave = jest.fn();
 const mockUserFindOne = jest.fn();
 const mockUserFind = jest.fn();

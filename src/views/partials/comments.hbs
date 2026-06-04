@@ -19,6 +19,7 @@
 
   <form hx-post="/web/posts/{{postId}}/comments" hx-target="#comments-section" hx-swap="outerHTML"
         class="bg-white border rounded-lg p-6">
+    {{> csrf}}
     <h3 class="text-lg font-semibold mb-4">Leave a comment</h3>
     <textarea name="content" rows="3" required
               class="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"

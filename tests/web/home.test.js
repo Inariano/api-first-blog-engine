@@ -1,5 +1,13 @@
 const request = require('supertest');
 
+jest.mock('../../src/middlewares/csrf', () => ({
+  csrfProtection: (req, res, next) => {
+    res.locals.csrfToken = 'test-csrf-token';
+    next();
+  },
+  csrfValidate: (req, res, next) => next(),
+}));
+
 jest.mock('../../src/models/Post', () => {
   const Post = {
     find: jest.fn(),

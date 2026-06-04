@@ -13,6 +13,7 @@
 
   <form method="POST" action="/web/admin/posts{{#if post}}/{{post._id}}/edit{{/if}}"
         class="bg-white rounded-lg shadow-md p-8 space-y-6">
+    {{> csrf}}
     <div>
       <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
       <input type="text" name="title" id="title" required

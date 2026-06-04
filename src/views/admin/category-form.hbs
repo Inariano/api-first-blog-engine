@@ -13,6 +13,7 @@
 
   <form method="POST" action="/web/admin/categories{{#if category}}/{{category._id}}/edit{{/if}}"
         class="bg-white rounded-lg shadow-md p-8 space-y-6">
+    {{> csrf}}
     <div>
       <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
       <input type="text" name="name" id="name" required

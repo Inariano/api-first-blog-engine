@@ -19,6 +19,7 @@ const Category = require('./models/Category');
 const webRouter = require('./web/home');
 const adminRouter = require('./web/admin');
 const flash = require('./middlewares/flash');
+const { csrfProtection } = require('./middlewares/csrf');
 
 const app = express();
 
@@ -65,6 +66,7 @@ if (config.mongodb.uri) {
 
 app.use(session(sessionOptions));
 app.use(flash);
+app.use(csrfProtection);
 
 // View engine
 const hbs = engine({

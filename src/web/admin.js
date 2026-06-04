@@ -7,10 +7,13 @@ const Comment = require('../models/Comment');
 const Category = require('../models/Category');
 const config = require('../config');
 const webAuth = require('../middlewares/webAuth');
+const { csrfValidate } = require('../middlewares/csrf');
 const { createPostSchema, updatePostSchema } = require('../validators/post');
 const { createCategorySchema, updateCategorySchema } = require('../validators/category');
 
 const router = express.Router();
+
+router.use(csrfValidate);
 
 router.get('/login', (req, res) => {
   res.render('admin/login', { title: 'Admin Login' });
