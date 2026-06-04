@@ -165,6 +165,36 @@ describe('POST /api/posts/:postId/comments', () => {
 
     expect(response.body).toHaveProperty('error');
   });
+
+  test('should sanitize HTML content on create', async () => {
+    const Post = require('../src/models/Post');
+    const Comment = require('../src/models/Comment');
+    Post.findById.mockResolvedValue({ _id: 'post-id-123' });
+    Comment.__mockSave.mockResolvedValue();
+    Comment.__mockToJSON.mockReturnValue({
+      _id: 'new-comment-id',
+      content: 'sanitized',
+      author: { name: 'Writer', email: 'writer@test.com' },
+    });
+    Comment.findById.mockReturnValue({
+      populate: jest.fn().mockResolvedValue({
+        _id: 'new-comment-id',
+        content: 'sanitized',
+        author: { name: 'Writer', email: 'writer@test.com' },
+        toJSON() { return this; },
+      }),
+    });
+
+    await request(app)
+      .post('/api/posts/post-id-123/comments')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ content: '<script>alert("xss")</script><p>Nice post!</p>' })
+      .expect(201);
+
+    expect(Comment).toHaveBeenCalledWith(expect.objectContaining({
+      content: '&lt;script&gt;alert("xss")&lt;/script&gt;<p>Nice post!</p>',
+    }));
+  });
 });
 
 describe('DELETE /api/posts/:postId/comments/:commentId', () => {

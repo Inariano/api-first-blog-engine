@@ -20,12 +20,30 @@ const webRouter = require('./web/home');
 const adminRouter = require('./web/admin');
 const flash = require('./middlewares/flash');
 const { csrfProtection } = require('./middlewares/csrf');
+const csp = require('./middlewares/csp');
 
 const app = express();
 
 // Security
+app.use(csp);
+
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'strict-dynamic'",
+        (req, res) => `'nonce-${res.nonce}'`,
+      ],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'", 'data:', 'https:'],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+    },
+  },
 }));
 
 app.use(cors({ origin: config.env === 'production' ? process.env.CORS_ORIGIN : '*', credentials: true }));

@@ -168,6 +168,22 @@ describe('POST /api/posts', () => {
 
     expect(response.body).toHaveProperty('error');
   });
+
+  test('should sanitize HTML content on create', async () => {
+    const Post = mockPost();
+    Post.__mockSave.mockResolvedValue();
+    Post.__mockToJSON.mockReturnValue({ _id: 'p1', title: 'Test', content: 'sanitized' });
+
+    await request(app)
+      .post('/api/posts')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ title: 'Test', content: '<script>alert("xss")</script><p>Hello</p>', category: 'cat-id' })
+      .expect(201);
+
+    expect(Post).toHaveBeenCalledWith(expect.objectContaining({
+      content: '&lt;script&gt;alert("xss")&lt;/script&gt;<p>Hello</p>',
+    }));
+  });
 });
 
 describe('GET /api/posts/:id', () => {
@@ -374,6 +390,32 @@ describe('PUT /api/posts/:id', () => {
       .expect(500);
 
     expect(response.body).toHaveProperty('error');
+  });
+
+  test('should sanitize HTML content on update', async () => {
+    const Post = mockPost();
+    const mockSave = jest.fn().mockResolvedValue();
+    const mockToJSON = jest.fn().mockReturnValue({ _id: 'post-id', title: 'Updated', content: 'sanitized' });
+
+    const postDoc = {
+      _id: 'post-id',
+      title: 'Original',
+      content: 'Original content',
+      category: 'cat-id',
+      tags: [],
+      status: 'draft',
+      save: mockSave,
+      toJSON: mockToJSON,
+    };
+    Post.findOne.mockResolvedValue(postDoc);
+
+    await request(app)
+      .put('/api/posts/post-id')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ content: '<script>alert("xss")</script><p>Updated</p>' })
+      .expect(200);
+
+    expect(postDoc.content).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;<p>Updated</p>');
   });
 });
 

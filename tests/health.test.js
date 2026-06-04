@@ -51,6 +51,15 @@ describe('GET /health', () => {
 
     expect(response.body.status).toBe('up');
   });
+
+  test('should include Content-Security-Policy header', async () => {
+    const response = await request(app)
+      .get('/health')
+      .expect(200);
+
+    expect(response.headers['content-security-policy']).toBeDefined();
+    expect(response.headers['content-security-policy']).toContain("'nonce-");
+  });
 });
 
 describe('404 handler', () => {

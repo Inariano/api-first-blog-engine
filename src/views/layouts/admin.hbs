@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}} — Admin</title>
-  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.3" nonce="{{nonce}}"></script>
+  <script src="https://cdn.tailwindcss.com" nonce="{{nonce}}"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex">
   <aside class="w-64 bg-gray-900 text-white flex flex-col shrink-0">
@@ -41,5 +41,13 @@
       {{{body}}}
     </div>
   </main>
+
+  <script nonce="{{nonce}}">
+    document.querySelectorAll('form[data-confirm]').forEach(function(f) {
+      f.addEventListener('submit', function(e) {
+        if (!confirm(f.getAttribute('data-confirm'))) e.preventDefault();
+      });
+    });
+  </script>
 </body>
 </html>
