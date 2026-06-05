@@ -1,6 +1,7 @@
 const express = require('express');
 const Category = require('../models/Category');
 const auth = require('../middlewares/auth');
+const requireRole = require('../middlewares/rbac');
 const logger = require('../utils/logger');
 const validate = require('../middlewares/validate');
 const { createCategorySchema, updateCategorySchema } = require('../validators/category');
@@ -16,7 +17,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.post('/', auth, validate(createCategorySchema), async (req, res, next) => {
+router.post('/', auth, requireRole('admin'), validate(createCategorySchema), async (req, res, next) => {
   try {
     const { name, description } = req.body;
 
@@ -44,7 +45,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.put('/:id', auth, validate(updateCategorySchema), async (req, res, next) => {
+router.put('/:id', auth, requireRole('admin'), validate(updateCategorySchema), async (req, res, next) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category) {
@@ -66,7 +67,7 @@ router.put('/:id', auth, validate(updateCategorySchema), async (req, res, next) 
   }
 });
 
-router.delete('/:id', auth, async (req, res, next) => {
+router.delete('/:id', auth, requireRole('admin'), async (req, res, next) => {
   try {
     const category = await Category.findByIdAndDelete(req.params.id);
     if (!category) {

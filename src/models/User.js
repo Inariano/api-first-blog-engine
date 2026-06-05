@@ -16,8 +16,15 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters'],
+  },
+  provider: {
+    type: String,
+    enum: ['local', 'google', 'github'],
+    default: 'local',
+  },
+  providerId: {
+    type: String,
   },
   role: {
     type: String,
@@ -41,7 +48,7 @@ const userSchema = new mongoose.Schema({
 });
 
 async function hashPassword(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
 
   try {
     this.password = await bcrypt.hash(this.password, 12);

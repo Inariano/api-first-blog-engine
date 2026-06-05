@@ -34,6 +34,7 @@ jest.mock('../src/middlewares/auth', () => jest.fn((req, res, next) => {
   next();
 }));
 
+const auth = require('../src/middlewares/auth');
 const app = require('../src/app');
 
 describe('GET /api/posts/:postId/comments', () => {
@@ -244,6 +245,20 @@ describe('DELETE /api/posts/:postId/comments/:commentId', () => {
       .delete('/api/posts/post-id-123/comments/comment-id')
       .set('Authorization', 'Bearer valid-token')
       .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 403 when user is not writer or admin', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'subscriber' };
+      next();
+    });
+
+    const response = await request(app)
+      .delete('/api/posts/post-id-123/comments/comment-id')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(403);
 
     expect(response.body).toHaveProperty('error');
   });

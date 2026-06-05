@@ -1,6 +1,7 @@
 const express = require('express');
 const Post = require('../models/Post');
 const auth = require('../middlewares/auth');
+const requireRole = require('../middlewares/rbac');
 const logger = require('../utils/logger');
 const validate = require('../middlewares/validate');
 const { createPostSchema, updatePostSchema } = require('../validators/post');
@@ -22,7 +23,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.post('/', auth, validate(createPostSchema), async (req, res, next) => {
+router.post('/', auth, requireRole('admin', 'writer'), validate(createPostSchema), async (req, res, next) => {
   try {
     const { title, content, category, tags, status } = req.body;
 
@@ -57,7 +58,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.put('/:id', auth, validate(updatePostSchema), async (req, res, next) => {
+router.put('/:id', auth, requireRole('admin', 'writer'), validate(updatePostSchema), async (req, res, next) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, author: req.user.id });
     if (!post) {
@@ -79,7 +80,7 @@ router.put('/:id', auth, validate(updatePostSchema), async (req, res, next) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res, next) => {
+router.delete('/:id', auth, requireRole('admin', 'writer'), async (req, res, next) => {
   try {
     const post = await Post.findOneAndDelete({ _id: req.params.id, author: req.user.id });
     if (!post) {

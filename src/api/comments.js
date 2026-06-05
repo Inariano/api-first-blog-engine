@@ -2,6 +2,7 @@ const express = require('express');
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
 const auth = require('../middlewares/auth');
+const requireRole = require('../middlewares/rbac');
 const logger = require('../utils/logger');
 const validate = require('../middlewares/validate');
 const { createCommentSchema } = require('../validators/comment');
@@ -48,7 +49,7 @@ router.post('/', auth, validate(createCommentSchema), async (req, res, next) => 
   }
 });
 
-router.delete('/:commentId', auth, async (req, res, next) => {
+router.delete('/:commentId', auth, requireRole('admin', 'writer'), async (req, res, next) => {
   try {
     const { postId, commentId } = req.params;
     const comment = await Comment.findOne({

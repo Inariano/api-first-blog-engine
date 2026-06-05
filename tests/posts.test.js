@@ -31,6 +31,7 @@ jest.mock('../src/middlewares/auth', () => jest.fn((req, res, next) => {
   next();
 }));
 
+const auth = require('../src/middlewares/auth');
 const app = require('../src/app');
 
 function mockPost() {
@@ -183,6 +184,21 @@ describe('POST /api/posts', () => {
     expect(Post).toHaveBeenCalledWith(expect.objectContaining({
       content: '&lt;script&gt;alert("xss")&lt;/script&gt;<p>Hello</p>',
     }));
+  });
+
+  test('should return 403 when user is not writer or admin', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'subscriber' };
+      next();
+    });
+
+    const response = await request(app)
+      .post('/api/posts')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ title: 'Test', content: 'Content', category: 'cat-id' })
+      .expect(403);
+
+    expect(response.body).toHaveProperty('error');
   });
 });
 
@@ -417,6 +433,21 @@ describe('PUT /api/posts/:id', () => {
 
     expect(postDoc.content).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;<p>Updated</p>');
   });
+
+  test('should return 403 when user is not writer or admin on update', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'subscriber' };
+      next();
+    });
+
+    const response = await request(app)
+      .put('/api/posts/post-id')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ title: 'Updated' })
+      .expect(403);
+
+    expect(response.body).toHaveProperty('error');
+  });
 });
 
 describe('DELETE /api/posts/:id', () => {
@@ -457,6 +488,20 @@ describe('DELETE /api/posts/:id', () => {
       .delete('/api/posts/post-id')
       .set('Authorization', 'Bearer valid-token')
       .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 403 when user is not writer or admin on delete', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'subscriber' };
+      next();
+    });
+
+    const response = await request(app)
+      .delete('/api/posts/post-id')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(403);
 
     expect(response.body).toHaveProperty('error');
   });

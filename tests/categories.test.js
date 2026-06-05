@@ -26,6 +26,7 @@ jest.mock('../src/middlewares/auth', () => jest.fn((req, res, next) => {
   next();
 }));
 
+const auth = require('../src/middlewares/auth');
 const app = require('../src/app');
 
 function mockCategory() {
@@ -159,6 +160,21 @@ describe('POST /api/categories', () => {
       .set('Authorization', 'Bearer valid-token')
       .send({ name: 'JavaScript' })
       .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 403 when user is not admin', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'writer' };
+      next();
+    });
+
+    const response = await request(app)
+      .post('/api/categories')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ name: 'Test' })
+      .expect(403);
 
     expect(response.body).toHaveProperty('error');
   });
@@ -339,6 +355,21 @@ describe('PUT /api/categories/:id', () => {
 
     expect(response.body).toHaveProperty('error');
   });
+
+  test('should return 403 when user is not admin on update', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'writer' };
+      next();
+    });
+
+    const response = await request(app)
+      .put('/api/categories/cat-id')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ name: 'Updated' })
+      .expect(403);
+
+    expect(response.body).toHaveProperty('error');
+  });
 });
 
 describe('DELETE /api/categories/:id', () => {
@@ -378,6 +409,20 @@ describe('DELETE /api/categories/:id', () => {
       .delete('/api/categories/error-id')
       .set('Authorization', 'Bearer valid-token')
       .expect(500);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 403 when user is not admin on delete', async () => {
+    auth.mockImplementationOnce((req, res, next) => {
+      req.user = { id: 'test-user-id', role: 'writer' };
+      next();
+    });
+
+    const response = await request(app)
+      .delete('/api/categories/cat-id')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(403);
 
     expect(response.body).toHaveProperty('error');
   });

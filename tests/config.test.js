@@ -13,6 +13,10 @@ describe('Config', () => {
     expect(config.jwt).toHaveProperty('expiresIn', '7d');
   });
 
+  test('should have corsOrigin with default value', () => {
+    expect(config).toHaveProperty('corsOrigin', 'http://localhost:3000');
+  });
+
   test('should have mongodb config', () => {
     expect(config.mongodb).toBeDefined();
     expect(Object.keys(config.mongodb)).toContain('uri');

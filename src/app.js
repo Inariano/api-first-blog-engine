@@ -15,12 +15,14 @@ const authRouter = require('./api/auth');
 const postsRouter = require('./api/posts');
 const commentsRouter = require('./api/comments');
 const categoriesRouter = require('./api/categories');
+const oauthRouter = require('./api/oauth');
 const Category = require('./models/Category');
 const webRouter = require('./web/home');
 const adminRouter = require('./web/admin');
 const flash = require('./middlewares/flash');
 const { csrfProtection } = require('./middlewares/csrf');
 const csp = require('./middlewares/csp');
+const passport = require('./config/passport');
 
 const app = express();
 
@@ -46,16 +48,30 @@ app.use(helmet({
   },
 }));
 
-app.use(cors({ origin: config.env === 'production' ? process.env.CORS_ORIGIN : '*', credentials: true }));
+app.use(cors({ origin: config.env === 'production' ? config.corsOrigin : '*', credentials: true }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Rate limiting - differentiated per route type
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+
+const webLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Parsing
 app.use(express.json({ limit: '1mb' }));
@@ -66,7 +82,7 @@ app.use(cookieParser());
 const sessionOptions = {
   secret: config.session.secret,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: config.env !== 'production',
   cookie: {
     httpOnly: true,
     secure: config.env === 'production',
@@ -83,6 +99,7 @@ if (config.mongodb.uri) {
 }
 
 app.use(session(sessionOptions));
+app.use(passport.initialize());
 app.use(flash);
 app.use(csrfProtection);
 
@@ -136,12 +153,13 @@ app.use('/web', async (req, res, next) => {
 
 // Routes
 app.use('/health', healthRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/posts', postsRouter);
-app.use('/api/posts/:postId/comments', commentsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/web/admin', adminRouter);
-app.use('/web', webRouter);
+app.use('/api/auth', authLimiter, authRouter);
+app.use('/api/auth', authLimiter, oauthRouter);
+app.use('/api/posts', apiLimiter, postsRouter);
+app.use('/api/posts/:postId/comments', apiLimiter, commentsRouter);
+app.use('/api/categories', apiLimiter, categoriesRouter);
+app.use('/web/admin', webLimiter, adminRouter);
+app.use('/web', webLimiter, webRouter);
 app.get('/', (req, res) => res.redirect('/web'));
 
 // Test-only route that triggers error handler

@@ -8,6 +8,11 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().default('dev-secret-change-in-production'),
   JWT_SECRET: z.string().default('dev-jwt-secret'),
   JWT_EXPIRES_IN: z.string().default('7d'),
+  CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
 });
 
 const envVars = envSchema.safeParse(process.env);
@@ -30,6 +35,17 @@ const config = {
   jwt: {
     secret: envVars.data.JWT_SECRET,
     expiresIn: envVars.data.JWT_EXPIRES_IN,
+  },
+  corsOrigin: envVars.data.CORS_ORIGIN,
+  oauth: {
+    google: {
+      clientId: envVars.data.GOOGLE_CLIENT_ID,
+      clientSecret: envVars.data.GOOGLE_CLIENT_SECRET,
+    },
+    github: {
+      clientId: envVars.data.GITHUB_CLIENT_ID,
+      clientSecret: envVars.data.GITHUB_CLIENT_SECRET,
+    },
   },
 };
 
