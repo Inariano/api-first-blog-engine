@@ -12,7 +12,15 @@
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix"
   },
-  "keywords": ["blog", "api-first", "express", "mongodb", "htmx", "tailwindcss", "tdd"],
+  "keywords": [
+    "blog",
+    "api-first",
+    "express",
+    "mongodb",
+    "htmx",
+    "tailwindcss",
+    "tdd"
+  ],
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -33,6 +41,7 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "winston": "^3.14.0",
+    "xss": "^1.0.15",
     "zod": "^3.23.8"
   },
   "devDependencies": {

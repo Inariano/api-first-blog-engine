@@ -1,0 +1,17 @@
+<section class="max-w-4xl mx-auto">
+  <h1 class="text-4xl font-bold mb-8">Published Posts</h1>
+
+  <div id="posts-list" class="space-y-6"
+       hx-get="/web/posts"
+       hx-trigger="load"
+       hx-target="#posts-list"
+       hx-swap="outerHTML">
+    <div class="text-center py-12 text-gray-400">
+      <svg class="animate-spin h-8 w-8 mx-auto mb-4" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+      Loading posts...
+    </div>
+  </div>
+</section>

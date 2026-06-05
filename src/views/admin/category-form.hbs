@@ -1,0 +1,38 @@
+<div class="max-w-lg mx-auto">
+  <h1 class="text-3xl font-bold mb-8">{{#if category}}Edit Category{{else}}New Category{{/if}}</h1>
+
+  {{#if errors}}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+      <ul class="list-disc list-inside">
+        {{#each errors}}
+          <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  <form method="POST" action="/web/admin/categories{{#if category}}/{{category._id}}/edit{{/if}}"
+        class="bg-white rounded-lg shadow-md p-8 space-y-6">
+    {{> csrf}}
+    <div>
+      <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+      <input type="text" name="name" id="name" required
+             value="{{values.name}}"
+             class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    </div>
+
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea name="description" id="description" rows="3"
+                class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">{{values.description}}</textarea>
+    </div>
+
+    <div class="flex items-center gap-4 pt-4 border-t">
+      <button type="submit"
+              class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-medium">
+        {{#if category}}Update Category{{else}}Create Category{{/if}}
+      </button>
+      <a href="/web/admin/categories" class="text-gray-600 hover:text-gray-800">Cancel</a>
+    </div>
+  </form>
+</div>

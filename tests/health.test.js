@@ -1,4 +1,5 @@
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../src/app');
 
 describe('GET /health', () => {
@@ -29,6 +30,35 @@ describe('GET /health', () => {
 
     const timestamp = new Date(response.body.timestamp);
     expect(timestamp.toISOString()).toBe(response.body.timestamp);
+  });
+
+  test('should accept requests with a valid token cookie', async () => {
+    const token = jwt.sign({ id: 'test-id', role: 'admin', name: 'Test' }, 'dev-jwt-secret');
+
+    const response = await request(app)
+      .get('/health')
+      .set('Cookie', `token=${token}`)
+      .expect(200);
+
+    expect(response.body.status).toBe('up');
+  });
+
+  test('should accept requests with an invalid token cookie', async () => {
+    const response = await request(app)
+      .get('/health')
+      .set('Cookie', 'token=invalid-token')
+      .expect(200);
+
+    expect(response.body.status).toBe('up');
+  });
+
+  test('should include Content-Security-Policy header', async () => {
+    const response = await request(app)
+      .get('/health')
+      .expect(200);
+
+    expect(response.headers['content-security-policy']).toBeDefined();
+    expect(response.headers['content-security-policy']).toContain("'nonce-");
   });
 });
 
